@@ -2,6 +2,8 @@ import { Elysia, t } from "elysia";
 import {
   EmailAlreadyRegisteredError,
   InvalidCredentialsError,
+  UnauthorizedError,
+  getCurrentUser,
   loginUser,
   registerUser,
 } from "../services/users-service";
@@ -49,4 +51,25 @@ export const usersRoute = new Elysia()
         password: t.String(),
       }),
     }
-  );
+  )
+  .get("/api/users/login", async ({ headers, set }) => {
+    const authHeader = headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      set.status = 401;
+      return { error: "Unauthorized" };
+    }
+
+    const token = authHeader.slice("Bearer ".length);
+
+    try {
+      const user = await getCurrentUser(token);
+      return { data: user };
+    } catch (error) {
+      if (error instanceof UnauthorizedError) {
+        set.status = 401;
+        return { error: error.message };
+      }
+      throw error;
+    }
+  });
