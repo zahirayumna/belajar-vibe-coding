@@ -5,6 +5,7 @@ import { users, sessions } from "../db/schema";
 
 export class EmailAlreadyRegisteredError extends Error {}
 export class InvalidCredentialsError extends Error {}
+export class UnauthorizedError extends Error {}
 
 export async function registerUser(input: {
   name: string;
@@ -53,4 +54,31 @@ export async function loginUser(input: { email: string; password: string }) {
   });
 
   return token;
+}
+
+export async function getCurrentUser(token: string) {
+  const [session] = await db
+    .select()
+    .from(sessions)
+    .where(eq(sessions.token, token));
+
+  if (!session) {
+    throw new UnauthorizedError("Unauthorized");
+  }
+
+  const [user] = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, session.userId));
+
+  if (!user) {
+    throw new UnauthorizedError("Unauthorized");
+  }
+
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    created_at: user.createdAt,
+  };
 }
