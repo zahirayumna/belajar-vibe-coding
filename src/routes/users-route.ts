@@ -5,6 +5,7 @@ import {
   UnauthorizedError,
   getCurrentUser,
   loginUser,
+  logoutUser,
   registerUser,
 } from "../services/users-service";
 
@@ -65,6 +66,27 @@ export const usersRoute = new Elysia()
     try {
       const user = await getCurrentUser(token);
       return { data: user };
+    } catch (error) {
+      if (error instanceof UnauthorizedError) {
+        set.status = 401;
+        return { error: error.message };
+      }
+      throw error;
+    }
+  })
+  .delete("/api/users/logout", async ({ headers, set }) => {
+    const authHeader = headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      set.status = 401;
+      return { error: "Unauthorized" };
+    }
+
+    const token = authHeader.slice("Bearer ".length);
+
+    try {
+      await logoutUser(token);
+      return { data: "OK" };
     } catch (error) {
       if (error instanceof UnauthorizedError) {
         set.status = 401;
