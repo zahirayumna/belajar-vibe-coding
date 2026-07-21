@@ -49,6 +49,12 @@ export const usersRoute = new Elysia()
         email: t.String({ maxLength: 255 }),
         password: t.String({ maxLength: 255 }),
       }),
+      detail: {
+        tags: ["Users"],
+        summary: "Registrasi user baru",
+        description:
+          "Mendaftarkan user baru. Password disimpan dalam bentuk hash bcrypt, bukan plain text.",
+      },
     }
   )
   .post(
@@ -70,31 +76,72 @@ export const usersRoute = new Elysia()
         email: t.String(),
         password: t.String(),
       }),
+      detail: {
+        tags: ["Users"],
+        summary: "Login user",
+        description:
+          "Login dengan email & password, menghasilkan token session (dipakai sebagai 'Authorization: Bearer <token>' di endpoint lain).",
+      },
     }
   )
-  .get("/api/users/login", async ({ headers, set }) => {
-    try {
-      const token = extractBearerToken(headers);
-      const user = await getCurrentUser(token);
-      return { data: user };
-    } catch (error) {
-      if (error instanceof UnauthorizedError) {
-        set.status = 401;
-        return { error: error.message };
+  .get(
+    "/api/users/login",
+    async ({ headers, set }) => {
+      try {
+        const token = extractBearerToken(headers);
+        const user = await getCurrentUser(token);
+        return { data: user };
+      } catch (error) {
+        if (error instanceof UnauthorizedError) {
+          set.status = 401;
+          return { error: error.message };
+        }
+        throw error;
       }
-      throw error;
+    },
+    {
+      headers: t.Object({
+        authorization: t.Optional(
+          t.String({
+            description: "Format: Bearer <token>. Token didapat dari response login.",
+          })
+        ),
+      }),
+      detail: {
+        tags: ["Users"],
+        summary: "Ambil data user yang sedang login",
+        description: "Butuh header Authorization berisi token session hasil login.",
+      },
     }
-  })
-  .delete("/api/users/logout", async ({ headers, set }) => {
-    try {
-      const token = extractBearerToken(headers);
-      await logoutUser(token);
-      return { data: "OK" };
-    } catch (error) {
-      if (error instanceof UnauthorizedError) {
-        set.status = 401;
-        return { error: error.message };
+  )
+  .delete(
+    "/api/users/logout",
+    async ({ headers, set }) => {
+      try {
+        const token = extractBearerToken(headers);
+        await logoutUser(token);
+        return { data: "OK" };
+      } catch (error) {
+        if (error instanceof UnauthorizedError) {
+          set.status = 401;
+          return { error: error.message };
+        }
+        throw error;
       }
-      throw error;
+    },
+    {
+      headers: t.Object({
+        authorization: t.Optional(
+          t.String({
+            description: "Format: Bearer <token>. Token didapat dari response login.",
+          })
+        ),
+      }),
+      detail: {
+        tags: ["Users"],
+        summary: "Logout user",
+        description:
+          "Menghapus session dengan token tersebut dari database. Butuh header Authorization berisi token session.",
+      },
     }
-  });
+  );
