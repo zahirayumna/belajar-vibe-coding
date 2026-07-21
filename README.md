@@ -114,6 +114,8 @@ belajar-vibe-coding/
 
 Base URL default: `http://localhost:3000`
 
+> Dokumentasi interaktif (Swagger UI) tersedia di `http://localhost:3000/swagger` saat server berjalan — semua endpoint di bawah ini bisa langsung dicoba dari situ lewat tombol "Try it out".
+
 Ringkasan:
 
 | Method | Endpoint | Deskripsi | Butuh Auth |
