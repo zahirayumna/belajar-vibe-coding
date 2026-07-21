@@ -49,6 +49,11 @@ export const usersRoute = new Elysia()
         email: t.String({ maxLength: 255 }),
         password: t.String({ maxLength: 255 }),
       }),
+      response: {
+        200: t.Object({ data: t.Literal("OK") }),
+        400: t.Object({ error: t.String() }),
+        500: t.Object({ error: t.String() }),
+      },
       detail: {
         tags: ["Users"],
         summary: "Registrasi user baru",
@@ -76,6 +81,10 @@ export const usersRoute = new Elysia()
         email: t.String(),
         password: t.String(),
       }),
+      response: {
+        200: t.Object({ data: t.String({ description: "Token session (UUID)" }) }),
+        401: t.Object({ error: t.String() }),
+      },
       detail: {
         tags: ["Users"],
         summary: "Login user",
@@ -107,6 +116,17 @@ export const usersRoute = new Elysia()
           })
         ),
       }),
+      response: {
+        200: t.Object({
+          data: t.Object({
+            id: t.Number(),
+            name: t.String(),
+            email: t.String(),
+            created_at: t.Date(),
+          }),
+        }),
+        401: t.Object({ error: t.String() }),
+      },
       detail: {
         tags: ["Users"],
         summary: "Ambil data user yang sedang login",
@@ -137,6 +157,10 @@ export const usersRoute = new Elysia()
           })
         ),
       }),
+      response: {
+        200: t.Object({ data: t.Literal("OK") }),
+        401: t.Object({ error: t.String() }),
+      },
       detail: {
         tags: ["Users"],
         summary: "Logout user",
