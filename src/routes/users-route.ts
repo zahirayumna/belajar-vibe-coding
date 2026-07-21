@@ -20,6 +20,14 @@ function extractBearerToken(headers: Record<string, string | undefined>): string
 }
 
 export const usersRoute = new Elysia()
+  .onError(({ code, error, set }) => {
+    if (code === "VALIDATION") {
+      set.status = 400;
+      const field = error.valueError?.path?.replace(/^\//, "") || "input";
+      const reason = error.valueError?.message ?? "tidak valid";
+      return { error: `Field '${field}' ${reason}` };
+    }
+  })
   .post(
     "/api/users",
     async ({ body, set }) => {
@@ -31,14 +39,15 @@ export const usersRoute = new Elysia()
           set.status = 400;
           return { error: error.message };
         }
-        throw error;
+        set.status = 500;
+        return { error: "Terjadi kesalahan pada server" };
       }
     },
     {
       body: t.Object({
-        name: t.String(),
-        email: t.String(),
-        password: t.String(),
+        name: t.String({ maxLength: 255 }),
+        email: t.String({ maxLength: 255 }),
+        password: t.String({ maxLength: 255 }),
       }),
     }
   )
